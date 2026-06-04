@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandglass Pomodoro - Classic Timer</title>
+    <style>
+        :root {
+            --bg-color: #1e293b;
+            --card-color: #334155;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --sand-color: #f59e0b;
+            --accent-color: #10b981;
+            --danger-color: #ef4444;
+            --premium-color: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background-color: var(--card-color);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        /* Mode Selection Buttons */
+        .mode-selection {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background-color: var(--bg-color);
+            border: 2px solid transparent;
+            color: var(--text-muted);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            color: var(--text-color);
+        }
+
+        .mode-btn.active {
+            background-color: transparent;
+            border-color: var(--sand-color);
+            color: var(--sand-color);
+        }
+
+        /* Hourglass Visual element */
+        .hourglass-wrapper {
+            width: 100px;
+            height: 160px;
+            margin: 0 auto 25px auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .bulb {
+            width: 100px;
+            height: 76px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 3px solid var(--text-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-bulb {
+            border-bottom: 1px solid transparent;
+            border-radius: 40px 40px 12px 12px;
+        }
+
+        .bottom-bulb {
+            border-top: 1px solid transparent;
+            border-radius: 12px 12px 40px 40px;
+        }
+
+        .sand {
+            width: 100%;
+            height: 100%;
+            background-color: var(--sand-color);
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            transform-origin: bottom;
+            transition: transform 1s linear;
+        }
+
+        .sand-bottom {
+            transform: scaleY(0);
+        }
+
+        /* Digital Display */
+        .timer-display {
+            font-size: 3.5rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 25px;
+            letter-spacing: -0.02em;
+        }
+
+        /* Action Controls */
+        .control-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary { background-color: var(--accent-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-secondary { background-color: var(--bg-color); color: var(--text-color); }
+        .btn-premium { background-color: var(--premium-color); color: white; width: 100%; margin-bottom: 25px;}
+
+        /* Advertising Slot Placeholder */
+        .ad-container {
+            background-color: var(--bg-color);
+            border: 1px dashed var(--text-muted);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>POMODORO SANDGLASS</h1>
+
+    <div class="mode-selection">
+        <button id="btn-25" class="mode-btn active" onclick="changeMode(25)">25 Min</button>
+        <button id="btn-5" class="mode-btn" onclick="changeMode(5)">5 Min</button>
+        <button id="btn-15" class="mode-btn" onclick="changeMode(15)">15 Min</button>
+    </div>
+
+    <div class="hourglass-wrapper">
+        <div class="bulb top-bulb">
+            <div id="sand-top" class="sand"></div>
+        </div>
+        <div class="bulb bottom-bulb">
+            <div id="sand-bottom" class="sand sand-bottom"></div>
+        </div>
+    </div>
+
+    <div id="display" class="timer-display">25:00</div>
+
+    <div class="control-group">
+        <button id="start-btn" class="btn btn-primary" onclick="startTimer()">Start</button>
+        <button id="pause-btn" class="btn btn-danger" onclick="pauseTimer()" style="display: none;">Pause</button>
+        <button class="btn btn-secondary" onclick="resetTimer()">Reset</button>
+    </div>
+
+    <button id="premium-btn" class="btn btn-premium" onclick="unlockPremium()">Unlock Premium Custom Sand ($1.99)</button>
+
+    <div id="ad-wrapper" class="ad-container">
+        <span>Advertisement Window</span>
+    </div>
+</div>
+
+<script>
+    let timerState = {
+        currentSeconds: 25 * 60,
+        initialSeconds: 25 * 60,
+        intervalId: null,
+        isRunning: false,
+        isPremium: false
+    };
+
+    function changeMode(minutes) {
+        if (timerState.isRunning) pauseTimer();
+        
+        timerState.initialSeconds = minutes * 60;
+        timerState.currentSeconds = timerState.initialSeconds;
+        
+        // Update UI Active States
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`btn-${minutes}`).classList.add('active');
+        
+        updateDisplay();
+        updateVisuals();
+    }
+
+    function updateDisplay() {
+        const mins = Math.floor(timerState.currentSeconds / 60).toString().padStart(2, '0');
+        const secs = (timerState.currentSeconds % 60).toString().padStart(2, '0');
+        document.getElementById('display').innerText = `${mins}:${secs}`;
+    }
+
+    function updateVisuals() {
+        const ratio = timerState.currentSeconds / timerState.initialSeconds;
+        document.getElementById('sand-top').style.transform = `scaleY(${ratio})`;
+        document.getElementById('sand-bottom').style.transform = `scaleY(${1 - ratio})`;
+    }
+
+    function startTimer() {
+        if (timerState.isRunning) return;
+        
+        timerState.isRunning = true;
+        document.getElementById('start-btn').style.display = 'none';
+        document.getElementById('pause-btn').style.display = 'block';
+
+        timerState.intervalId = setInterval(() => {
+            if (timerState.currentSeconds > 0) {
+                timerState.currentSeconds--;
+                updateDisplay();
+                updateVisuals();
+            } else {
+                handleTimerCompletion();
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        timerState.isRunning = false;
+        clearInterval(timerState.intervalId);
+        document.getElementById('start-btn').style.display = 'block';
+        document.getElementById('pause-btn').style.display = 'none';
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        timerState.currentSeconds = timerState.initialSeconds;
+        updateDisplay();
+        updateVisuals();
+    }
+
+    function handleTimerCompletion() {
+        pauseTimer();
+        alert("Time is up! Take a well-deserved break.");
+        resetTimer();
+    }
+
+    function unlockPremium() {
+        timerState.isPremium = true;
+        document.documentElement.style.setProperty('--sand-color', '#a78bfa'); // Premium purple sand
+        document.getElementById('ad-wrapper').style.display = 'none';
+        document.getElementById('premium-btn').style.display = 'none';
+        alert("Premium activated! Ads removed & neon purple sand unlocked.");
+    }
+</script>
+</body>
+</html>
